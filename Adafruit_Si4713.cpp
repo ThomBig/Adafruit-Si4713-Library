@@ -47,13 +47,16 @@ Adafruit_Si4713::Adafruit_Si4713(int8_t resetpin) { _rst = resetpin; }
  *
  */
 bool Adafruit_Si4713::begin(uint8_t addr, TwoWire *theWire) {
+  
+  reset();
+  
   if (i2c_dev)
     delete i2c_dev;
   i2c_dev = new Adafruit_I2CDevice(addr, theWire);
   if (!i2c_dev->begin())
     return false;
 
-  reset();
+  //reset();
 
   powerUp();
 
@@ -317,6 +320,8 @@ uint8_t Adafruit_Si4713::getStatus() {
  */
 void Adafruit_Si4713::powerUp() {
   _i2ccommand[0] = SI4710_CMD_POWER_UP;
+  
+#ifdef ANALOG_INPUT  
   _i2ccommand[1] = 0x12;
   // CTS interrupt disabled
   // GPO2 output disabled
@@ -324,6 +329,15 @@ void Adafruit_Si4713::powerUp() {
   // xtal oscillator ENabled
   // FM transmit
   _i2ccommand[2] = 0x50; // analog input mode
+#else
+  _i2ccommand[1] = 0x02;
+  // CTS interrupt disabled
+  // GPO2 output disabled
+  // Boot normally
+  // xtal oscillator Disabled
+  // FM transmit
+  _i2ccommand[2] = 0x0F; // digital input mode (I2S - DIN/DFS/DCLK)
+#endif
   sendCommand(3);
 
   // configuration! see page 254
@@ -333,6 +347,34 @@ void Adafruit_Si4713::powerUp() {
   // setProperty(SI4713_PROP_TX_ACOMP_ENABLE, 0x02); // turn on limiter, but no
   // dynamic ranging
   setProperty(SI4713_PROP_TX_ACOMP_ENABLE, 0x0); // turn on limiter and AGC
+
+	//nTomek - tu nie dziala nic
+  	//setProperty(SI4713_PROP_DIGITAL_INPUT_SAMPLE_RATE, 44100);
+	//setProperty(SI4713_PROP_DIGITAL_INPUT_FORMAT, 0);
+
+}
+
+// tu moje do I2S
+
+// AN332 - strona 241
+// http://www.adafruit.com/datasheets/SiLabs%20Programming%20guide%20AN332.pdf
+/*
+The procedure for using a digital audio is as follow:
+1. When the device is powered up, the default value for DIGITAL_INPUT_SAMPLE_RATE or
+DIGITAL_OUTPUT_SAMPLE_RATE is 0 (disable digital audio in/out).
+2. User then must supply DCLK and DFS prior to setting the DIGITAL_INPUT_SAMPLE_RATE or
+DIGITAL_OUTPUT_SAMPLE_RATE property.
+3. This procedure can be applied anytime after the chip is powered up.
+4. User may also change or disable DCLK/DFS during operation. Prior to changing or disabling DCLK/DFS, user
+has to set the DIGITAL_INPUT_SAMPLE_RATE or DIGITAL_OUTPUT_SAMPLE_RATE property to 0. After
+changing or re-enabling DCLK/DFS, user then can set the sample rate property again.
+5. The property DIGITAL_INPUT_FORMAT and DIGITAL_OUTPUT_FORMAT does not have a condition, thus it
+can be set anywhere after power up.
+*/
+void Adafruit_Si4713::setI2Sproperty(uint16_t sample_rate, uint16_t format)
+{
+	setProperty(SI4713_PROP_DIGITAL_INPUT_SAMPLE_RATE, sample_rate);
+	setProperty(SI4713_PROP_DIGITAL_INPUT_FORMAT, format);
 }
 
 /*!
@@ -349,7 +391,7 @@ uint8_t Adafruit_Si4713::getRev() {
   i2c_dev->read(resp, 9);
   pn = resp[1];
 
-#ifdef SI4713_CMD_DEBUG
+#ifndef SI4713_CMD_DEBUG
   uint8_t fw, patch, cmp, chiprev;
   fw = (uint16_t(resp[2]) << 8) | resp[3];
   patch = (uint16_t(resp[4]) << 8) | resp[5];
@@ -364,6 +406,8 @@ uint8_t Adafruit_Si4713::getRev() {
   Serial.println(fw, HEX);
   Serial.print("Patch 0x");
   Serial.println(patch, HEX);
+  Serial.print("Component 0x");
+  Serial.println(cmp, HEX);
   Serial.print("Chip rev ");
   Serial.write(chiprev);
   Serial.println();

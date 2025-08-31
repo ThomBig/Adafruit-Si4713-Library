@@ -165,7 +165,10 @@ public:
   void setTXpower(uint8_t pwr, uint8_t antcap = 0);
   void readASQ(void);
   void setProperty(uint16_t p, uint16_t v);
-
+  
+  // I2S stuff
+  void setI2Sproperty(uint16_t sample_rate, uint16_t format);
+  
   // RDS stuff
   void beginRDS(uint16_t programID = 0xADAF);
   void setRDSstation(const char *s);
