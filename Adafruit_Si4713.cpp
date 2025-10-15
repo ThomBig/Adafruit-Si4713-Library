@@ -230,7 +230,7 @@ void Adafruit_Si4713::beginRDS(uint16_t programID) {
   setProperty(SI4713_PROP_TX_RDS_PS_MIX, 0x03);       // 50% mix (default)
   setProperty(SI4713_PROP_TX_RDS_PS_MISC, 0x1008);    // RDSD0 & RDSMS (default)
   setProperty(SI4713_PROP_TX_RDS_PS_REPEAT_COUNT, 3); // 3 repeats (default)
-  setProperty(SI4713_PROP_TX_RDS_MESSAGE_COUNT, 1);   // 1 message (default)
+  setProperty(SI4713_PROP_TX_RDS_MESSAGE_COUNT, 12);   // 1 message (default)
   setProperty(SI4713_PROP_TX_RDS_PS_AF, 0xE0E0);      // no AF (default)
   setProperty(SI4713_PROP_TX_RDS_FIFO_SIZE, 0);       // no FIFO (default)
   setProperty(SI4713_PROP_TX_COMPONENT_ENABLE,
@@ -391,7 +391,7 @@ uint8_t Adafruit_Si4713::getRev() {
   i2c_dev->read(resp, 9);
   pn = resp[1];
 
-#ifndef SI4713_CMD_DEBUG
+#ifdef SI4713_SHOW_CHIP_INFO
   uint8_t fw, patch, cmp, chiprev;
   fw = (uint16_t(resp[2]) << 8) | resp[3];
   patch = (uint16_t(resp[4]) << 8) | resp[5];

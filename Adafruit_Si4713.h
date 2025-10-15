@@ -23,7 +23,8 @@
 #include "Arduino.h"
 #include <Adafruit_I2CDevice.h>
 
-//#define SI471X_CMD_DEBUG
+//#define SI4713_SHOW_CHIP_INFO
+//#define SI4713_CMD_DEBUG
 #define SI4710_ADDR0 0x11      ///< if SEN is low
 #define SI4710_ADDR1 0x63      ///< if SEN is high, default!
 #define SI4710_STATUS_CTS 0x80 ///< read status
@@ -170,7 +171,7 @@ public:
   void setI2Sproperty(uint16_t sample_rate, uint16_t format);
   
   // RDS stuff
-  void beginRDS(uint16_t programID = 0xADAF);
+  void beginRDS(uint16_t programID = 0x0165); //357 :-)
   void setRDSstation(const char *s);
   void setRDSbuffer(const char *s);
 
